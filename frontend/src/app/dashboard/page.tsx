@@ -1,11 +1,13 @@
+
 "use client";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Github, FileText, Sparkles, ArrowRight, Code2, BookOpen } from "lucide-react";
 
 export default function Home() {
   const [repo, setRepo] = useState("");
@@ -79,60 +81,196 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-4xl font-bold mb-6 text-center">
-        Replix – GitHub Tutorial Generator
-      </motion.h1>
-      <div className="flex gap-4 mb-4">
-        <Input
-          placeholder="Enter GitHub repo URL"
-          value={repo}
-          onChange={(e) => setRepo(e.target.value)}
-          className="flex-1 text-base"
-        />
-        <Button onClick={generateTutorial} disabled={loading} className="bg-amber-400 hover:bg-amber-500 text-black">
-          {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Generate"}
-        </Button>
-      </div>
-
-      {fileList.length > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
-            <h2 className="text-xl font-semibold mb-2">Files in Tutorial</h2>
-            <ul className="space-y-2 overflow-y-auto max-h-[400px]">
-              {fileList.map((file) => (
-                <li key={file}>
-                  <button
-                    onClick={() => loadFile(file)}
-                    className={`w-full text-left hover:underline ${selectedFile === file ? "font-semibold text-amber-600" : ""}`}
-                  >
-                    {file}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <div className="md:col-span-2">
-            {loadingFile ? (
-              <div className="flex items-center justify-center h-full py-20">
-                <Loader2 className="animate-spin h-6 w-6 text-gray-500" />
-              </div>
-            ) : fileContent ? (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-4">{selectedFile}</h3>
-                  <div className="prose max-w-none">
-                    <ReactMarkdown>{fileContent}</ReactMarkdown>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="text-center text-gray-500 mt-20">Select a file to preview</div>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+              <Github className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Replix
+            </h1>
           </div>
+          <p className="text-xl text-gray-600 mb-2">AI-Powered GitHub Tutorial Generator</p>
+          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+            <Sparkles className="w-4 h-4 mr-1" />
+            Transform repositories into comprehensive tutorials
+          </Badge>
         </motion.div>
-      )}
+
+        {/* Input Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-3xl mx-auto mb-12"
+        >
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Github className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    placeholder="https://github.com/username/repository"
+                    value={repo}
+                    onChange={(e) => setRepo(e.target.value)}
+                    className="pl-12 h-12 text-base border-gray-200 focus:border-purple-400 focus:ring-purple-400"
+                  />
+                </div>
+                <Button 
+                  onClick={generateTutorial} 
+                  disabled={loading || !repo.trim()} 
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold h-12 px-8"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Generate Tutorial
+                    </>
+                  )}
+                </Button>
+              </div>
+              {repo && (
+                <div className="mt-4 flex items-center text-sm text-gray-500">
+                  <Code2 className="w-4 h-4 mr-2" />
+                  Ready to analyze: {repo.split('/').pop()}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Results Section */}
+        {fileList.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 lg:grid-cols-4 gap-6"
+          >
+            {/* File List Sidebar */}
+            <Card className="lg:col-span-1 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <FileText className="w-5 h-5 mr-2 text-purple-500" />
+                  Tutorial Files
+                  <Badge variant="secondary" className="ml-auto">
+                    {fileList.length}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[500px] overflow-y-auto">
+                  {fileList.map((file, index) => (
+                    <motion.button
+                      key={file}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => loadFile(file)}
+                      className={`w-full text-left p-4 border-b border-gray-100 hover:bg-purple-50 transition-all duration-200 group ${
+                        selectedFile === file 
+                          ? "bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500" 
+                          : ""
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-sm font-medium truncate ${
+                          selectedFile === file ? "text-purple-700" : "text-gray-700"
+                        }`}>
+                          {file}
+                        </span>
+                        <ArrowRight className={`w-4 h-4 transition-transform ${
+                          selectedFile === file 
+                            ? "text-purple-500 translate-x-1" 
+                            : "text-gray-400 group-hover:translate-x-1"
+                        }`} />
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Content Display */}
+            <div className="lg:col-span-3">
+              {loadingFile ? (
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardContent className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <Loader2 className="animate-spin h-8 w-8 text-purple-500 mx-auto mb-4" />
+                      <p className="text-gray-600">Loading tutorial content...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : fileContent ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="border-b border-gray-100">
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="w-5 h-5 mr-2 text-purple-500" />
+                        {selectedFile}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8">
+                      <div className="prose prose-slate max-w-none prose-headings:text-gray-800 prose-p:text-gray-600 prose-code:text-purple-600 prose-code:bg-purple-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200">
+                        <ReactMarkdown>{fileContent}</ReactMarkdown>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ) : (
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardContent className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">Select a file to preview</h3>
+                      <p className="text-gray-500">Choose a tutorial file from the sidebar to view its content</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!loading && fileList.length === 0 && !projectName && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center py-16"
+          >
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Github className="w-10 h-10 text-purple-500" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Ready to Generate</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Enter a GitHub repository URL above and click "Generate Tutorial" to create 
+                comprehensive, AI-powered documentation for any codebase.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
