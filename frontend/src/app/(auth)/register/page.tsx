@@ -1,222 +1,290 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import axios from "axios";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Eye, EyeOff, Github, ArrowLeft, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import axios from "axios";
 import Image from "next/image";
 
 export default function SignUp() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState<boolean>(false);
-  const [userState, setUserState] = useState({
+  const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
-    name: "",
-    password_confirmation: "",
+    confirmPassword: "",
   });
 
-  const [errors, setError] = useState<registerErrorType>({});
+  const [errors, setErrors] = useState<any>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
-  const submitForm = async () => {
-    setLoading(true);
-    console.log("The payload is", userState);
-    axios
-      .post("/api/auth/register", userState)
-      .then((res) => {
-        setLoading(false);
-        console.log("The response is", res.data);
-        const response = res.data;
-        if (response.status == 200) {
-          router.push(`/login?message=${response.msg}`);
-        } else if (response?.status == 400) {
-          setError(response?.errors);
-        } else {
-          setError({});
-        }
-      })
-      .catch((err) => console.log("The error is", err));
+  const passwordsMatch =
+    formData.password === formData.confirmPassword && formData.confirmPassword;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  // * Google login
-  const googleLogin = async () => {
+  const submitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
+
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      password_confirmation: formData.confirmPassword,
+    };
+
+    try {
+      const res = await axios.post("/api/auth/register", payload);
+      const response = res.data;
+
+      if (response.status === 200) {
+        router.push(`/login?message=${response.msg}`);
+      } else if (response.status === 400) {
+        setErrors(response.errors);
+      }
+    } catch (err: any) {
+      console.error("Registration error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
     await signIn("google", {
       callbackUrl: "/dashboard",
-      redirect: true,
     });
   };
 
   return (
-    <section>
-      <div className="grid grid-cols-1 lg:grid-cols-2 h-screen">
-        <div className="relative flex items-end px-4 pb-10 pt-60 sm:px-6 sm:pb-16 md:justify-center lg:px-8 lg:pb-24">
-          <div className="absolute inset-0">
-            <img
-              className="h-full w-full  object-cover object-top"
-              src="https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80"
-              alt=""
-            />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
-          <div className="relative">
-            <div className="w-full max-w-xl xl:mx-auto xl:w-full xl:max-w-xl xl:pr-24">
-              <h3 className="text-4xl font-bold text-white">
-                Next js Authentication process
-              </h3>
-              <h2 className="text-white text-xl font-semibold mt-10">
-                Production label Authentication with validations
-              </h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Github className="w-6 h-6 text-white" />
             </div>
+            <span className="text-3xl font-bold text-white">Replix</span>
           </div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Create Account
+          </h1>
+          <p className="text-gray-300">
+            Join thousands of developers creating better tutorials
+          </p>
         </div>
-        <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
-          <div className="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
-            <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl">
-              Sign up
-            </h2>
-            <p className="mt-2 text-base text-gray-600">
-              Already have an account?
-              <Link
-                href="/login"
-                title=""
-                className="font-medium text-black transition-all duration-200 hover:underline ml-2"
-              >
-                Sign In
-              </Link>
-            </p>
-            <form action="#" method="POST" className="mt-8">
-              <div className="space-y-5">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="text-base font-medium text-gray-900"
-                  >
-                    Full Name
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="text"
-                      placeholder="Full Name"
-                      id="name"
-                      onChange={(e) =>
-                        setUserState({ ...userState, name: e.target.value })
-                      }
-                    ></input>
-                    <span className="text-red-500 font-bold">
-                      {errors?.name}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="text-base font-medium text-gray-900"
-                  >
-                    Email address
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="email"
-                      placeholder="Email"
-                      id="email"
-                      onChange={(e) =>
-                        setUserState({ ...userState, email: e.target.value })
-                      }
-                    ></input>
-                    <span className="text-red-500 font-bold">
-                      {errors?.email}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="password"
-                      className="text-base font-medium text-gray-900"
-                    >
-                      Password
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="password"
-                      placeholder="Password"
-                      id="password"
-                      onChange={(e) =>
-                        setUserState({ ...userState, password: e.target.value })
-                      }
-                    ></input>
-                    <span className="text-red-500 font-bold">
-                      {errors?.password}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="password"
-                      className="text-base font-medium text-gray-900"
-                    >
-                      Confirm Password
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="password"
-                      placeholder="Confirm Password"
-                      id="password_confirmation"
-                      onChange={(e) =>
-                        setUserState({
-                          ...userState,
-                          password_confirmation: e.target.value,
-                        })
-                      }
-                    ></input>
-                  </div>
-                </div>
-                <div>
+
+        <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="text-white text-center">Sign Up</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={submitForm} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white">
+                  Full Name
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Enter Your Name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  required
+                />
+                {errors?.name && (
+                  <p className="text-red-500 text-sm">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  required
+                />
+                {errors?.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
+                    required
+                  />
                   <button
                     type="button"
-                    className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80 ${
-                      loading ? "bg-gray-700" : "bg-black"
-                    }`}
-                    onClick={submitForm}
-                    disabled={loading}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                   >
-                    {loading ? "Processing..." : "Create Account"}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
+                  {errors?.password && (
+                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  )}
                 </div>
               </div>
-            </form>
-            <p className="text-center my-3">-- OR --</p>
 
-            {/* Google Login Button */}
-            <div className="space-y-3 mt-3">
-              <button
-                type="button"
-                className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
-                onClick={googleLogin}
-              >
-                <span className="mr-2 inline-block"></span>
-                <Image
-                  src="/google_icon.png"
-                  height={30}
-                  width={30}
-                  alt="Google Icon"
-                  className="mr-3"
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-white">
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                  {formData.confirmPassword && (
+                    <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                      {passwordsMatch ? (
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-red-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <label className="flex items-start text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  className="mr-2 mt-0.5"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
                 />
-                Sign in with Google
-              </button>
+                <span>
+                  I agree to the{" "}
+                  <Link
+                    href="/terms"
+                    className="text-purple-300 hover:text-purple-200"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-purple-300 hover:text-purple-200"
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
+                disabled={loading || !acceptTerms || !passwordsMatch}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </form>
+
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-white/20" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-transparent px-2 text-gray-400">
+                  Or continue with
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
+
+            <Button
+              variant="outline"
+              className="w-full border-white/20 text-white hover:bg-white/10 bg-white/5"
+              onClick={handleGoogleSignIn}
+            >
+              <Image
+                src="/google_icon.png"
+                alt="Google Icon"
+                width={20}
+                height={20}
+                className="mr-2"
+              />
+              Continue with Google
+            </Button>
+
+            <div className="text-center">
+              <p className="text-gray-300">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="text-purple-300 hover:text-purple-200 font-semibold"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </section>
+    </div>
   );
 }
