@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function MagicLink() {
   const [email, setEmail] = useState("");
@@ -10,49 +8,79 @@ export default function MagicLink() {
     email: "",
   });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: "success" | "error" }>({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => {
+      setToast({ visible: false, message: "", type: "success" });
+    }, 4000);
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
+    setErrors({ email: "" });
+
     axios
-      .post("/api/auth/magic-link", { email: email })
+      .post("/api/auth/magic-link", { email })
       .then((res) => {
         setLoading(false);
         const response = res.data;
-        if (response.status == 400) {
+
+        if (response.status === 400) {
           setErrors(response.errors);
-        } 
+        } else {
+          showToast("Check your email for the magic link!", "success");
+        }
       })
       .catch((err) => {
         setLoading(false);
-
-        console.log("The error is", err);
+        console.error("The error is", err);
+        showToast("Something went wrong. Please try again.", "error");
       });
   };
 
   return (
     <>
-      <ToastContainer />
-      <div className="h-screen w-screen flex justify-center items-center">
-        <div className="w-[500px] rounded-lg shadow-md p-5">
-          <h1 className="font-bold text-2xl">Magic Link</h1>
+      {/* Custom Toast */}
+      {toast.visible && (
+        <div
+          className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-md shadow-lg text-white z-50 ${
+            toast.type === "success" ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+
+      <div className="h-screen w-screen flex justify-center items-center bg-gray-100">
+        <div className="w-[500px] bg-white rounded-lg shadow-md p-5">
+          <h1 className="font-bold text-2xl mb-4">Magic Link</h1>
           <form onSubmit={handleSubmit}>
-            <div className="mt-5">
+            <div className="mb-4">
               <input
                 type="email"
-                className="h-10 rounded-lg outline-purple-400 border w-full p-2"
+                className="h-10 rounded-lg border border-gray-300 w-full p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter your email"
                 onChange={(e) => setEmail(e.target.value)}
+                value={email}
               />
-              <span className="text-red-500">{errors?.email}</span>
+              {errors.email && (
+                <span className="text-red-500 text-sm">{errors.email}</span>
+              )}
             </div>
-            <div className="mt-5">
+            <div>
               <button
                 type="submit"
-                className="w-full bg-purple-600 text-white rounded-lg p-2"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg p-2 transition"
                 disabled={loading}
               >
-                {loading ? "Processing.." : "Submit"}
+                {loading ? "Processing..." : "Submit"}
               </button>
             </div>
           </form>
