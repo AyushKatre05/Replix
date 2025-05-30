@@ -1,12 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Github, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
 import { signIn } from "next-auth/react";
+import axios from "axios";
 import Image from "next/image";
-import Toast from "@/components/Toast";
 
 export default function SignInOne() {
   const searchParam = useSearchParams();
@@ -15,181 +19,173 @@ export default function SignInOne() {
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errors, setError] = useState<LoginErrorType>();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setError] = useState<{ email?: string; password?: string }>();
 
   useEffect(() => {
     console.log("The query is", searchParam.get("error"));
   }, []);
 
-  //   * Submit the data
-  const submitForm = async () => {
+  const submitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    axios
-      .post("/api/auth/login", authData)
-      .then((res) => {
-        setLoading(false);
-        const response = res.data;
-        console.log("The response is ", response);
-        if (response.status == 200) {
-          console.log("The user signed in", response);
-          signIn("credentials", {
-            email: authData.email,
-            password: authData.password,
-            callbackUrl: "/dashboard",
-            redirect: true,
-          });
-        } else if (response.status == 400) {
-          setError(response?.errors);
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.log("Error is", err);
-      });
+    try {
+      const res = await axios.post("/api/auth/login", authData);
+      const response = res.data;
+      setLoading(false);
+
+      if (response.status === 200) {
+        await signIn("credentials", {
+          email: authData.email,
+          password: authData.password,
+          callbackUrl: "/dashboard",
+          redirect: true,
+        });
+      } else if (response.status === 400) {
+        setError(response.errors);
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error("Login error:", err);
+    }
   };
 
-  // * Google login
   const googleLogin = async () => {
     await signIn("google", {
-      callbackUrl: "/",
+      callbackUrl: "/dashboard",
       redirect: true,
     });
   };
 
   return (
-    <section>
-      <div className="grid grid-cols-1 lg:grid-cols-2 h-screen">
-        <div className="relative flex items-end px-4 pb-10 pt-60 sm:px-6 sm:pb-16 md:justify-center lg:px-8 lg:pb-24">
-          <div className="absolute inset-0">
-            <img
-              className="h-full w-full  object-cover object-top"
-              src="https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80"
-              alt=""
-            />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
-          <div className="relative">
-            <div className="w-full max-w-xl xl:mx-auto xl:w-full xl:max-w-xl xl:pr-24">
-              <h3 className="text-4xl font-bold text-white">
-                Next js Authentication process
-              </h3>
-              <h2 className="text-white text-xl font-semibold mt-10">
-                Production label Authentication with validations
-              </h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Github className="w-6 h-6 text-white" />
             </div>
+            <span className="text-3xl font-bold text-white">Replix</span>
           </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-gray-300">Sign in to your account to continue</p>
         </div>
-        <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
-          <div className="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
-            <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl">
-              Login
-            </h2>
-            <p className="mt-2 text-base text-gray-600">
-              Don't have an account?
-              <Link
-                href="/register"
-                title=""
-                className="font-medium text-black transition-all duration-200 hover:underline ml-2"
-              >
-                Sign Up
-              </Link>
-            </p>
-            <form action="#" method="POST" className="mt-8">
-              <div className="space-y-5">
-                <div>
-                  <label
-                    htmlFor=""
-                    className="text-base font-medium text-gray-900"
-                  >
-                    Email address
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="email"
-                      placeholder="Email"
-                      onChange={(e) =>
-                        setAuthData({ ...authData, email: e.target.value })
-                      }
-                    ></input>
-                    <span className="text-red-500 font-bold">
-                      {errors?.email}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor=""
-                      className="text-base font-medium text-gray-900"
-                    >
-                      Password
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="password"
-                      placeholder="Password"
-                      onChange={(e) =>
-                        setAuthData({ ...authData, password: e.target.value })
-                      }
-                    ></input>
-                    <span className="text-red-500 font-bold">
-                      {errors?.password}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <Link href="/forgot-password">Forgot password ?</Link>
-                  </div>
-                </div>
-                <div>
+
+        {/* Form Card */}
+        <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="text-white text-center">Sign In</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={submitForm} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authData.email}
+                  onChange={(e) =>
+                    setAuthData({ ...authData, email: e.target.value })
+                  }
+                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  required
+                />
+                {errors?.email && (
+                  <p className="text-red-500 text-sm font-semibold">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={authData.password}
+                    onChange={(e) =>
+                      setAuthData({ ...authData, password: e.target.value })
+                    }
+                    className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
+                    required
+                  />
                   <button
                     type="button"
-                    className={`inline-flex w-full items-center justify-center rounded-md  px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80  ${
-                      loading ? "bg-gray-600" : "bg-black"
-                    }`}
-                    onClick={submitForm}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                   >
-                    {loading ? "Processing.." : "Login"}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {errors?.password && (
+                  <p className="text-red-500 text-sm font-semibold">{errors.password}</p>
+                )}
               </div>
-            </form>
-            <p className="text-center my-3">-- OR --</p>
 
-            {/* Google Login Button */}
-            <div className="space-y-3 mt-3">
-              <button
-                type="button"
-                className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
-                onClick={googleLogin}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-300">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    Remember me
+                  </label>
+                </div>
+                <Link href="/forgot-password" className="text-sm text-purple-300 hover:text-purple-200">
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
+                disabled={loading}
               >
-                <span className="mr-2 inline-block"></span>
-                <Image
-                  src="/google_icon.png"
-                  height={30}
-                  width={30}
-                  alt="Google Icon"
-                  className="mr-3"
-                />
-                Sign in with Google
-              </button>
+                {loading ? 'Signing In...' : 'Sign In'}
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-white/20" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-transparent px-2 text-gray-400">Or continue with</span>
+              </div>
             </div>
 
-            {/* Magic link button */}
-            <div className="space-y-3 mt-3">
-              <Link
-                href="/magic-link"
-                className="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
-              >
+            <Button
+              variant="outline"
+              className="w-full border-white/20 text-white hover:bg-white/10 bg-white/5"
+              onClick={googleLogin}
+            >
+              <Image src="/google_icon.png" width={20} height={20} alt="Google" className="mr-2" />
+              Continue with Google
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full border-white/20 text-white hover:bg-white/10 bg-white/5"
+              asChild
+            >
+              <Link href="/magic-link">
+                <Mail className="w-4 h-4 mr-2" />
                 Sign in with Magic Link
               </Link>
+            </Button>
+
+            <div className="text-center">
+              <p className="text-gray-300">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="text-purple-300 hover:text-purple-200 font-semibold">
+                  Sign up
+                </Link>
+              </p>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-    </section>
+    </div>
   );
 }
