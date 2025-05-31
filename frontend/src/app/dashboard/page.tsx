@@ -250,7 +250,6 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* Empty State */}
         {!loading && fileList.length === 0 && !projectName && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
