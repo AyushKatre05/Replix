@@ -4,12 +4,11 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export default function MagicLinkLogin({
-  params,
-}: {
-  params: { email: string };
-}) {
+export default function MagicLinkLogin() {
   const searchParam = useSearchParams();
+  const email = searchParam.get("email");
+  const signature = searchParam.get("signature");
+
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -24,10 +23,15 @@ export default function MagicLinkLogin({
   };
 
   useEffect(() => {
+    if (!email || !signature) {
+      showToast("Invalid or missing link parameters.", "error");
+      return;
+    }
+
     axios
       .post("/api/auth/magic-link/verify", {
-        email: params.email,
-        token: searchParam.get("signature"),
+        email,
+        token: signature,
       })
       .then((res) => {
         const response = res.data;
@@ -41,19 +45,18 @@ export default function MagicLinkLogin({
               redirect: true,
             });
           }, 1500);
-        } else if (response.status === 400) {
-          showToast(response.message, "error");
+        } else {
+          showToast(response.message || "Invalid link", "error");
         }
       })
       .catch((err) => {
         console.log("The error is", err);
         showToast("Something went wrong. Please try again.", "error");
       });
-  }, []);
+  }, [email, signature]);
 
   return (
     <>
-      {/* Custom Toast */}
       {toast.show && (
         <div
           className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-md shadow-lg text-white transition-all duration-300 ${
