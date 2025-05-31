@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Github, Mail, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import axios from "axios";
 import Image from "next/image";
 
-export const dynamic = "force-dynamic"; // This prevents static optimization and avoids SSR issues with useSearchParams
+// export const dynamic = "force-dynamic"; // REMOVE this line
 
 export default function SignInOne() {
   const searchParam = useSearchParams();
@@ -27,7 +27,7 @@ export default function SignInOne() {
 
   useEffect(() => {
     console.log("The query is", searchParam.get("error"));
-  }, []);
+  }, [searchParam]);
 
   const submitForm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,10 +60,7 @@ export default function SignInOne() {
     });
   };
 
-
-
   return (
-    <Suspense fallback={<div className="text-white text-center mt-10">Loading...</div>}>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -86,7 +83,9 @@ export default function SignInOne() {
           <CardContent className="space-y-6">
             <form onSubmit={submitForm} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">Email</Label>
+                <Label htmlFor="email" className="text-white">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -99,12 +98,16 @@ export default function SignInOne() {
                   required
                 />
                 {errors?.email && (
-                  <p className="text-red-500 text-sm font-semibold">{errors.email}</p>
+                  <p className="text-red-500 text-sm font-semibold">
+                    {errors.email}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white">Password</Label>
+                <Label htmlFor="password" className="text-white">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -122,11 +125,17 @@ export default function SignInOne() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 {errors?.password && (
-                  <p className="text-red-500 text-sm font-semibold">{errors.password}</p>
+                  <p className="text-red-500 text-sm font-semibold">
+                    {errors.password}
+                  </p>
                 )}
               </div>
 
@@ -137,7 +146,10 @@ export default function SignInOne() {
                     Remember me
                   </label>
                 </div>
-                <Link href="/forgot-password" className="text-sm text-purple-300 hover:text-purple-200">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-purple-300 hover:text-purple-200"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -147,7 +159,7 @@ export default function SignInOne() {
                 className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
                 disabled={loading}
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 
@@ -156,7 +168,9 @@ export default function SignInOne() {
                 <span className="w-full border-t border-white/20" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-transparent px-2 text-gray-400">Or continue with</span>
+                <span className="bg-transparent px-2 text-gray-400">
+                  Or continue with
+                </span>
               </div>
             </div>
 
@@ -165,7 +179,13 @@ export default function SignInOne() {
               className="w-full border-white/20 text-white hover:bg-white/10 bg-white/5"
               onClick={googleLogin}
             >
-              <Image src="/google_icon.png" width={20} height={20} alt="Google" className="mr-2" />
+              <Image
+                src="/google_icon.png"
+                width={20}
+                height={20}
+                alt="Google"
+                className="mr-2"
+              />
               Continue with Google
             </Button>
 
@@ -183,7 +203,10 @@ export default function SignInOne() {
             <div className="text-center">
               <p className="text-gray-300">
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-purple-300 hover:text-purple-200 font-semibold">
+                <Link
+                  href="/register"
+                  className="text-purple-300 hover:text-purple-200 font-semibold"
+                >
                   Sign up
                 </Link>
               </p>
@@ -192,6 +215,5 @@ export default function SignInOne() {
         </Card>
       </div>
     </div>
-    </Suspense>
   );
 }
