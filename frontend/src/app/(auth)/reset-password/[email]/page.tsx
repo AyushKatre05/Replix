@@ -1,15 +1,13 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 
-export default function ResetPassword({
-  params,
-}: {
-  params: { email: string };
-}) {
+export default function ResetPassword() {
   const searchParam = useSearchParams();
+  const { email } = useParams(); // ✅ Get email from route param
+
   const [authState, setAuthState] = useState({
     password: "",
     cpassword: "",
@@ -34,7 +32,7 @@ export default function ResetPassword({
 
     axios
       .post("/api/auth/reset-password", {
-        email: params.email,
+        email,
         signature: searchParam.get("signature"),
         password: authState.password,
         password_confirmation: authState.cpassword,
