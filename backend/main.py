@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Set
-
+from fastapi.middleware.cors import CORSMiddleware
 from flow import create_tutorial_flow  # Your tutorial flow module
 
 # Load .env file
@@ -34,17 +34,18 @@ app = FastAPI(title="Tutorial Generator API")
 
 # Allow CORS for local development
 origins = [
-    "http://localhost:3000",
+    "http://localhost:3000",  # for local dev
     "http://127.0.0.1:3000",
-    "https://replix.ayushkatre.tech"
+    "https://replix.ayushkatre.tech",  # ✅ your custom frontend domain
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Serve output directory as static files
 app.mount("/output", StaticFiles(directory="output"), name="output")
