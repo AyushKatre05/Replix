@@ -25,6 +25,9 @@ DEFAULT_EXCLUDE_PATTERNS: Set[str] = {
     "legacy/*", ".git/*", ".github/*", ".next/*", ".vscode/*", "obj/*", "bin/*", "node_modules/*", "*.log"
 }
 
+# Ensure output directory exists before mounting
+os.makedirs("output", exist_ok=True)
+
 app = FastAPI(title="Tutorial Generator API")
 
 origins = [
@@ -40,7 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve the output directory as static files so frontend can fetch files directly
+# Mount output directory
 app.mount("/output", StaticFiles(directory="output"), name="output")
 
 class GenerateRequest(BaseModel):
@@ -88,11 +91,13 @@ async def generate_tutorial(data: GenerateRequest):
     print(f"Generating tutorial for: {data.repo or data.dir} (language: {data.language.capitalize()})")
     print(f"LLM caching: {'Disabled' if data.no_cache else 'Enabled'}")
 
+    # Ensure the specified output subdirectory exists
+    os.makedirs(data.output, exist_ok=True)
+
     tutorial_flow = create_tutorial_flow()
 
     try:
         tutorial_flow.run(shared)
-        # Derive project name if not explicitly provided
         project_name = shared["project_name"] or (data.repo.split("/")[-1].replace(".git", "") if data.repo else "project")
         output_url_path = f"/output/{project_name}"
         return {"success": True, "output_path": output_url_path, "project_name": project_name}
@@ -107,6 +112,5 @@ async def list_generated_files(project_name: str = Query(..., description="Proje
     if not os.path.exists(project_dir) or not os.path.isdir(project_dir):
         return JSONResponse(status_code=404, content={"error": "Project output directory not found"})
 
-    # List markdown files (.md) or any other files you want to expose
     files = [f for f in os.listdir(project_dir) if f.endswith(".md") or f.endswith(".txt")]
     return {"files": files}
