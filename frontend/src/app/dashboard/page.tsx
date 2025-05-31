@@ -27,7 +27,7 @@ export default function Home() {
     setSelectedFile(null);
     setFileContent("");
 
-    const res = await fetch("http://localhost:8000/generate", {
+    const res = await fetch("https://replix-d28t.onrender.com/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo }),
@@ -51,7 +51,7 @@ export default function Home() {
 
   async function fetchFileList(projectName: string) {
     try {
-      const res = await fetch(`http://localhost:8000/files?project_name=${projectName}`);
+      const res = await fetch(`https://replix-d28t.onrender.com/files?project_name=${projectName}`);
       if (!res.ok) {
         alert("Failed to fetch file list");
         return;
@@ -67,7 +67,7 @@ export default function Home() {
     if (!outputPath) return;
     setLoadingFile(true);
 
-    const url = `http://localhost:8000${outputPath}/${fileName}`;
+    const url = `https://replix-d28t.onrender.com${outputPath}/${fileName}`;
     const res = await fetch(url);
     setLoadingFile(false);
 
@@ -250,7 +250,6 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* Empty State */}
         {!loading && fileList.length === 0 && !projectName && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
