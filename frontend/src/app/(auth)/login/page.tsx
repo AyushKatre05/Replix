@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import axios from "axios";
 import Image from "next/image";
+
+export const dynamic = "force-dynamic"; // This prevents static optimization and avoids SSR issues with useSearchParams
 
 export default function SignInOne() {
   const searchParam = useSearchParams();
@@ -58,7 +60,10 @@ export default function SignInOne() {
     });
   };
 
+
+
   return (
+    <Suspense fallback={<div className="text-white text-center mt-10">Loading...</div>}>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -187,5 +192,6 @@ export default function SignInOne() {
         </Card>
       </div>
     </div>
+    </Suspense>
   );
 }
