@@ -7,10 +7,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Set
 
-from flow import create_tutorial_flow  # Your tutorial flow
+from flow import create_tutorial_flow  # Your tutorial flow module
 
+# Load .env file
 dotenv.load_dotenv()
 
+# Default include/exclude file patterns
 DEFAULT_INCLUDE_PATTERNS: Set[str] = {
     "*.py", "*.js", "*.jsx", "*.ts", "*.tsx", "*.go", "*.java", "*.pyi", "*.pyx",
     "*.c", "*.cc", "*.cpp", "*.h", "*.md", "*.rst", "Dockerfile",
@@ -19,33 +21,34 @@ DEFAULT_INCLUDE_PATTERNS: Set[str] = {
 
 DEFAULT_EXCLUDE_PATTERNS: Set[str] = {
     "assets/*", "data/*", "examples/*", "images/*", "public/*", "static/*", "temp/*",
-    "docs/*", 
-    "venv/*", ".venv/*", "*test*", "tests/*", "docs/*", "examples/*", "v1/*",
-    "dist/*", "build/*", "experimental/*", "deprecated/*", "misc/*", 
+    "docs/*", "venv/*", ".venv/*", "*test*", "tests/*", "v1/*",
+    "dist/*", "build/*", "experimental/*", "deprecated/*", "misc/*",
     "legacy/*", ".git/*", ".github/*", ".next/*", ".vscode/*", "obj/*", "bin/*", "node_modules/*", "*.log"
 }
 
-# Ensure output directory exists before mounting
+# Ensure output directory exists
 os.makedirs("output", exist_ok=True)
 
+# Initialize FastAPI app
 app = FastAPI(title="Tutorial Generator API")
 
+# Allow CORS for local development
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Adjust as needed
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Mount output directory
+# Serve output directory as static files
 app.mount("/output", StaticFiles(directory="output"), name="output")
 
+# Request model
 class GenerateRequest(BaseModel):
     repo: Optional[str] = Field(None, description="GitHub repo URL")
     dir: Optional[str] = Field(None, description="Local directory path")
@@ -91,7 +94,6 @@ async def generate_tutorial(data: GenerateRequest):
     print(f"Generating tutorial for: {data.repo or data.dir} (language: {data.language.capitalize()})")
     print(f"LLM caching: {'Disabled' if data.no_cache else 'Enabled'}")
 
-    # Ensure the specified output subdirectory exists
     os.makedirs(data.output, exist_ok=True)
 
     tutorial_flow = create_tutorial_flow()
@@ -114,3 +116,7 @@ async def list_generated_files(project_name: str = Query(..., description="Proje
 
     files = [f for f in os.listdir(project_dir) if f.endswith(".md") or f.endswith(".txt")]
     return {"files": files}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
